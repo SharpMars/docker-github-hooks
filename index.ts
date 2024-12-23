@@ -25,6 +25,7 @@ const webhooks = new Webhooks({
 webhooks.on("push", async (event) => {
   if (event.payload.ref.split("/").at(-1) === branch) {
     for (const file of await readdir("./hooks")) {
+      if (!file.trim().endsWith(".sh")) continue;
       await $`bun run ${`./${file}`}`.cwd("./hooks");
     }
   }
