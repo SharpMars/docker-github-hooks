@@ -14,6 +14,10 @@ WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/build/index.js index.js
 RUN apk add docker
 
+RUN adduser -D app
+RUN adduser app docker
+USER app
+
 EXPOSE 3000
 
 ENTRYPOINT [ "bun", "run", "index.js" ]
