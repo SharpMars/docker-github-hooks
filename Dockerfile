@@ -12,7 +12,7 @@ FROM oven/bun:alpine AS final
 WORKDIR /usr/src/app
 
 COPY --from=build /usr/src/app/build/index.js index.js
-RUN apk add docker git
+RUN apk add docker docker-cli-compose git
 
 EXPOSE 3000
 
