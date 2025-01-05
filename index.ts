@@ -1,8 +1,7 @@
 import { Webhooks } from "@octokit/webhooks";
 import { type WebhookEventName } from "./node_modules/@octokit/webhooks/dist-types/types";
 import { readdir } from "node:fs/promises";
-import { $ } from "bun";
-import { exec } from "node:child_process";
+import { exec, execSync } from "node:child_process";
 
 if (Bun.env.WEBHOOK_SECRET == undefined) {
   console.log("Webhook secret needs to be set");
@@ -26,7 +25,26 @@ const webhooks = new Webhooks({
 webhooks.on("push", async (event) => {
   if (event.payload.ref.split("/").at(-1) === branch) {
     for (const file of await readdir("./hooks")) {
-      if (!file.trim().endsWith(".sh")) continue;
+      const splitFile = file.split(".", 2);
+      const isAlphanumericPlusDashUnderscore = splitFile
+        .map((value) => /^[a-zA-Z0-9_-]+$/.test(value))
+        .reduce((val1, val2) => val1 && val2);
+      if (
+        !file.trim().endsWith(".sh") ||
+        file.includes(" ") ||
+        !isAlphanumericPlusDashUnderscore
+      )
+        continue;
+
+      try {
+        const stdout = execSync(`chmod +x ./hooks/${file}`, {
+          cwd: process.cwd(),
+        });
+        console.log(stdout.toString("utf-8"));
+      } catch (error) {
+        console.error(error);
+      }
+
       try {
         exec(
           `./hooks/${file}`,
